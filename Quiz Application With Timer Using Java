@@ -1,0 +1,113 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
+
+class QuizQuestion {
+    private String question;
+    private ArrayList<String> options;
+    private int correctAnswerIndex;
+
+    public QuizQuestion(String question, ArrayList<String> options, int correctAnswerIndex) {
+        this.question = question;
+        this.options = options;
+        this.correctAnswerIndex = correctAnswerIndex;
+    }
+
+    public String getQuestion() {
+        return question;
+    }
+
+    public ArrayList<String> getOptions() {
+        return options;
+    }
+
+    public int getCorrectAnswerIndex() {
+        return correctAnswerIndex;
+    }
+}
+
+class Quiz {
+    private ArrayList<QuizQuestion> questions;
+    private int currentQuestionIndex;
+    private int userScore;
+
+    public Quiz(ArrayList<QuizQuestion> questions) {
+        this.questions = questions;
+        this.currentQuestionIndex = 0;
+        this.userScore = 0;
+    }
+
+    public void startQuiz() {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                displayQuestion();
+                getUserAnswer();
+            }
+        }, 0, 10000); // Display a question every 10 seconds
+
+        // Allow the quiz to run for a fixed duration (e.g., 60 seconds)
+        Timer finishTimer = new Timer();
+        finishTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                endQuiz();
+                timer.cancel(); // Stop displaying questions after the fixed duration
+            }
+        }, 60000); // Quiz duration: 60 seconds
+    }
+
+    private void displayQuestion() {
+        QuizQuestion currentQuestion = questions.get(currentQuestionIndex);
+        System.out.println("Question: " + currentQuestion.getQuestion());
+
+        ArrayList<String> options = currentQuestion.getOptions();
+        for (int i = 0; i < options.size(); i++) {
+            System.out.println((i + 1) + ". " + options.get(i));
+        }
+    }
+
+    private void getUserAnswer() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter your answer (1-" + questions.get(0).getOptions().size() + "): ");
+        int userAnswerIndex = scanner.nextInt() - 1;
+
+        QuizQuestion currentQuestion = questions.get(currentQuestionIndex);
+        if (userAnswerIndex == currentQuestion.getCorrectAnswerIndex()) {
+            System.out.println("Correct!");
+            userScore++;
+        } else {
+            System.out.println("Incorrect. The correct answer was: " +
+                    currentQuestion.getOptions().get(currentQuestion.getCorrectAnswerIndex()));
+        }
+
+        // Move to the next question
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.size()) {
+            displayQuestion();
+        } else {
+            endQuiz();
+        }
+    }
+
+    private void endQuiz() {
+        System.out.println("Quiz ended. Your final score is: " + userScore);
+    }
+}
+
+public class QuizApp {
+    public static void main(String[] args) {
+        // Create quiz questions
+        ArrayList<QuizQuestion> quizQuestions = new ArrayList<>();
+        quizQuestions.add(new QuizQuestion("What is the capital of France?",
+                new ArrayList<>(List.of("London", "Berlin", "Paris", "Madrid")), 2));
+        quizQuestions.add(new QuizQuestion("Which planet is known as the Red Planet?",
+                new ArrayList<>(List.of("Earth", "Mars", "Jupiter", "Venus")), 1));
+
+        // Create quiz and start it
+        Quiz quiz = new Quiz(quizQuestions);
+        quiz.startQuiz();
+    }
+}
